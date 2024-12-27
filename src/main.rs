@@ -1,9 +1,9 @@
+mod threads;
+use threads::ThreadPool;
 use std::{
     net::{TcpListener, TcpStream},
     io::{BufReader, Result, Write, BufRead},
-    fs, 
-    thread,
-    time::Duration,
+    fs,
 };
 
 fn handle_connection(mut stream: TcpStream) {
@@ -25,9 +25,10 @@ fn handle_connection(mut stream: TcpStream) {
 
 fn main() -> Result<()> {
     let listener = TcpListener::bind("127.0.0.1:80")?;
+    let pool = ThreadPool::new(4);
 
     for stream in listener.incoming() {
-        handle_connection(stream.unwrap());
+        pool.execute(|| handle_connection(stream.unwrap()));
     }
 
     Ok(())
