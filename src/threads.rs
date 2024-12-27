@@ -41,9 +41,14 @@ impl ThreadPool {
 
 impl Drop for ThreadPool {
     fn drop(&mut self) {
+        drop(self.sender.take());
+
         for worker in &mut self.workers {
             println!("Shutting down worker {}", worker.id);
 
+            // "takes" the value of worker.thread making it None
+            // and checks if the previous value was Some(thread)
+            // if so, it waits for the thread to finish executing
             if let Some(thread) = worker.thread.take() {
                 thread.join().unwrap();
             }
@@ -52,6 +57,8 @@ impl Drop for ThreadPool {
 }
 
 struct Worker {
+    // this is an Option so that we can shut it
+    // down by taking its value
     thread: Option<thread::JoinHandle<()>>,
     id: usize,
 }
