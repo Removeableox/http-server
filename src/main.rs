@@ -1,6 +1,10 @@
-use std::net::{TcpListener, TcpStream};
-use std::io::{BufRead, BufReader, Result, Write};
-use std::fs;
+use std::{
+    net::{TcpListener, TcpStream},
+    io::{BufReader, Result, Write, BufRead},
+    fs, 
+    thread,
+    time::Duration,
+};
 
 fn handle_connection(mut stream: TcpStream) {
     // get request info
