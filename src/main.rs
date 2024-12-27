@@ -2,31 +2,19 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{BufRead, BufReader, Result, Write};
 use std::fs;
 
-fn good_connection_res() -> String {
-    let status = "HTTP/1.1 200 OK";
-    let file = fs::read_to_string("src/html/index.html").unwrap();
-    let file_length = file.len();
-
-    format!("{status}\r\nContent-Length: {file_length}\r\n\r\n{file}")
-}
-
-fn bad_connection_res() -> String {
-    let status = "HTTP/1.1 404 NOT FOUND";
-    let file = fs::read_to_string("src/html/404.html").unwrap();
-    let file_length = file.len();
-
-    format!("{status}\r\nContent-Length: {file_length}\r\n\r\n{file}")
-}
-
 fn handle_connection(mut stream: TcpStream) {
     // get request info
     let reader = BufReader::new(&stream); 
     let request = reader.lines().next().unwrap().unwrap();
 
-    let response = match request.as_str() {
-        "GET / HTTP/1.1" => good_connection_res(),
-        _ => bad_connection_res(),
+    let (status, file_name) = match request.as_str() {
+        "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "index.html"),
+        _ => ("HTTP/1.1 404 NOT FOUND", "404.html"),
     };
+    let file = fs::read_to_string(format!("src/html/{file_name}")).unwrap();
+    let size = file.len();
+
+    let response = format!("{status}\r\nContent-Length: {size}\r\n\r\n{file}");
 
     stream.write_all(response.as_bytes()).unwrap();
 }
